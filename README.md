@@ -26,13 +26,18 @@ Demonstrate your understanding of this Sprint's concepts by answering the follow
 
 - [ ] Mention two parts of Express that you learned about this week.
 
+  - During the last lessons I learned about Express's support of middleware and how we can use external, and built-in middlewares and also create our own. I also learned how we can use Express to route different requests according the the URI, and therefore serve a client different data depending on the request type and route on which they are requesting.
+
 - [ ] Describe Middleware?
-
+  - Middleware are functions that help us accomplish things throughout different areas of our Express apps. They allow us to do things like log data as requests by clients are made, validate data that is requested, authenticate users, etc. Creating middleware is in line with DRY principles because it allows us to reuse modules in different types of request methods.
 - [ ] Describe a Resource?
-
+  - A Resource is the data that we serve up from our application. This is things like lists of users, comments, posts, information, etc. It is what our API works on and manipulates using CRUD operations over the HTTP protocol.
 - [ ] What can the API return to help clients know if a request was successful?
 
+  - We usually want to return a relevant HTTP status code. To let a client know that a request was successful we usually uses status code 200. To do that in an Express method we would write `response.status(200)` and then `.send()` or `.json()` to provide further information to the client.
+
 - [ ] How can we partition our application into sub-applications?
+  - We can break an application down into files that contain the code that's relevant to a single resource. For example, we could have all the code that works on the Users resource and one on the Posts resource. This helps reduce clutter and let's us be more concise with the code we write.
 
 ## Project Setup
 
