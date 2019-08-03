@@ -36,11 +36,47 @@ const verifyProjectData = (req, res, next) => {
     req.newProject = req.body;
     next();
   } else {
+    res.status(400).json({
+      message: "Please provide a name and description for the project"
+    });
+  }
+};
+
+const verifyActionId = async (req, res, next) => {
+  try {
+    const action = await Actions.get(req.params.actionId);
+    if (action.project_id === req.project.id) {
+      req.action = action;
+      next();
+    } else {
+      res.status(400).json({ message: "There is no action with that id" });
+    }
+  } catch {
     res
-      .status(400)
-      .json({
-        message: "Please provide a name and description for the project"
-      });
+      .status(500)
+      .json({ message: "There was an error completing the request" });
+  }
+};
+
+const verifyActionData = (req, res, next) => {
+  const action = req.body;
+  if (Object.keys(action).length) {
+    if (
+      action.description.length > 0 &&
+      action.description.length < 128 &&
+      action.notes
+    ) {
+      req.action = action;
+      next();
+    } else {
+      res
+        .status(400)
+        .json({
+          message: "Please include a request with a description and notes"
+        });
+    }
+  } else {
+    res.status(400).json({ message: "Action data missing" });
   }
 };
 
@@ -69,7 +105,7 @@ router.get("/:id", verifyProjectId, async (req, res, next) => {
 router.post("/", verifyProjectData, async (req, res, next) => {
   try {
     const newProject = await Projects.insert(req.newProject);
-    console.log(newProject);
+    res.status(201).json(newProject);
   } catch {
     res.status(500).json({ message: "There was an error with the request" });
   }
@@ -109,8 +145,57 @@ router.get("/:id/actions", verifyProjectId, async (req, res, next) => {
   }
 });
 
+//----> actions
+router.get(
+  "/:id/actions/:actionId",
+  [verifyProjectId, verifyActionId],
+  (req, res, next) => {
+    res.status(200).json(req.action);
+  }
+);
+
+router.post(
+  "/:id/actions",
+  [verifyProjectId, verifyActionData],
+  async (req, res, next) => {
+    try {
+      req.action.project_id = req.project.id;
+      console.log(req.action);
+      const newAction = await Actions.insert(req.action);
+      res.status(201).json(newAction);
+    } catch {
+      res.status(500).json({ message: "There was an error with the request" });
+    }
+  }
+);
+
+router.put(
+  "/:id/actions/:actionId",
+  [verifyProjectId, verifyActionId, verifyActionData],
+  async (req, res, next) => {
+    try {
+      const updateAction = await Actions.update(req.params.actionId,req.action);
+      res.status(200).json(updateAction);
+    } catch {
+      res.status(500).json({ message: "There was an error with the request" });
+    }
+  }
+);
+
+router.delete("/:id/actions/:actionId", [verifyProjectId, verifyActionId], async (req, res, next) =>{
+  try {
+    const deletedCount = await Actions.remove(req.action.id);
+    res.status(204).end();
+  }catch{
+    res.status(500).json({ message: "There was an error with the request" });
+}
+})
+
 router.use(express.json());
 router.use(verifyProjectId);
 router.use(verifyProjectData);
+
+router.use(verifyActionId);
+router.use(verifyActionData);
 
 module.exports = router;
